@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js Pet Depot</title>
+    <!-- Importing Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f4f4f4;
+            padding: 10px 20px;
+            border-bottom: 2px solid #ccc;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        header button .fas {
+            margin-left: 5px;
+        }
+
+        main {
+            margin-top: 20px;
+        }
+
+        .products {
+            border: 1px solid grey;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .products img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        figure {
+            margin: 0;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        select,
+        input[type="text"],
+        input[type="number"] {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+    </style>
+    <script> 
+    if('serviceWorker' in navigator) { 
+        navigator.serviceWorker.register('service-worker.js'); 
+        }; 
+        </script>
+
+        <!-- .Then is a promice given that its gonna be sent -->
+</head>
+
+<body>
+    <div id="app" class="container">
+        <header>
+            <h1>{{ sitename }}</h1>
+            <button v-on:click="showCheckout">
+                {{ cartItemCount }}
+                <span class="fas fa-cart-plus"> Checkout</span>
+            </button>
+        </header>
+        <main>
+            <div v-if="showProduct">
+                <div v-for="product in sortedProducts" :key="product.id" class="products">
+                    <figure>
+                        <img :src="product.image" alt="Product Image">
+                    </figure>
+                    <h2>{{ product.title }}</h2>
+                    <p v-html="product.description"></p>
+                    <p>Price: {{ product.price }}</p>
+                    <p>Available Stocks: {{ product.availableInventory }}</p>
+                    <button v-on:click="addToCart(product)" v-if="canAddToCart(product)">Add To Cart</button>
+                    <button disabled v-else>Add To Cart</button>
+                    <div>
+                        <span v-for="n in product.rating">★</span>
+                        <span v-for="n in 5 - product.rating">☆</span>
+                    </div>
+                </div>
+            </div>
+            <div v-else>
+                <h2>Checkout</h2>
+                <p><strong>First Name:</strong> <input v-model.trim="order.firstName" /></p>
+                <p><strong>Last Name:</strong> <input v-model="order.lastName" /></p>
+                <p><strong>Address:</strong> <input v-model="order.Address" /></p>
+                <p><strong>City:</strong> <input v-model="order.City" /></p>
+                <p>
+                    <strong>State:</strong>
+                    <select v-model="order.State">
+                        <option disabled value="">Select a State</option>
+                        <option v-for="(stateName, stateKey) in States" :key="stateKey" :value="stateName">
+                            {{ stateName }}
+                        </option>
+                    </select>
+                </p>
+                <p><strong>Zip/Postal Code:</strong> <input v-model.number="order.Zip" type="number" /></p>
+                <p>
+                    <input type="checkbox" id="gift" v-model="order.gift" />
+                    <label for="gift">Ship As Gift?</label>
+                </p>
+                <p>
+                    <input type="radio" id="home" value="Home" v-model="order.method" />
+                    <label for="home">Home</label>
+                    <input type="radio" id="business" value="Business" v-model="order.method" />
+                    <label for="business">Business</label>
+                </p>
+                <h2>Order Information</h2>
+                <p>First Name: {{ order.firstName }}</p>
+                <p>Last Name: {{ order.lastName }}</p>
+                <p>Address: {{ order.Address }}</p>
+                <p>City: {{ order.City }}</p>
+                <p>State: {{ order.State }}</p>
+                <p>Zip: {{ order.Zip }}</p>
+                <p>Gift: {{ order.gift }}</p>
+                <button v-on:click="submitForm">Place Order</button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                sitename: 'Vue.js Pet Depot',
+                showProduct: true,
+                States: {
+                    AL: 'Alabama',
+                    AZ: 'Arizona',
+                    CA: 'California',
+                    NV: 'Nevada'
+                },
+                order: {
+                    firstName: '',
+                    lastName: '',
+                    Address: '',
+                    City: '',
+                    State: '',
+                    Zip: '',
+                    gift: false,
+                    method: 'Home'
+                },
+                products: [
+                    {
+                        id: 1001,
+                        title: "Cat Food, 25lb Bag",
+                        description: "A 25-pound bag of <em>irresistible</em> organic goodness for your cat.",
+                        price: 20.00,
+                        availableInventory: 10,
+                        image: "images/cat.jpg",
+                        rating: 4
+                    },
+                    {
+                        id: 1002,
+                        title: "Dog Food, 50lb Bag",
+                        description: "A 50-pound bag of <em>delicious</em> kibble for your dog.",
+                        price: 45.00,
+                        availableInventory: 5,
+                        image: "images/catbowl.jpeg",
+                        rating: 5
+                    }
+                ],
+                cart: []
+            },
+            methods: {
+                addToCart(product) {
+                    this.cart.push(product.id);
+                },
+                canAddToCart(product) {
+                    return product.availableInventory > this.cartCount(product.id);
+                },
+                showCheckout() {
+                    this.showProduct = !this.showProduct;
+                },
+                submitForm() {
+                    alert('Order submitted!');
+                },
+                cartCount(id) {
+                    return this.cart.filter(cartId => cartId === id).length;
+                }
+            },
+            computed: {
+                cartItemCount() {
+                    return this.cart.length || '';
+                },
+                sortedProducts() {
+                    return [...this.products].sort((a, b) => a.price - b.price);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

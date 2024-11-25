@@ -1,0 +1,16 @@
+{
+    "name": "Vue.js Pet Depot",
+    "short_name": "PetDepot",
+    "description": "An online store for pet supplies built with Vue.js",
+    "icons": [
+        {
+            "src": "images/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "start_url": "/Petstore.html",
+    "display": "standalone",
+    "background_color": "#f4f4f4",
+    "theme_color": "#007bff"
+}
